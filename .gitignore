@@ -1,0 +1,7 @@
+backend/node_modules/
+frontend/node_modules/
+ml-service/mental_health_model/
+*.safetensors
+*.bin
+*.pkl
+.env
