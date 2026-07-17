@@ -2,7 +2,6 @@ import { createContext } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { useEffect, useState } from "react";
-import { AppContext } from "../../../frontend/src/context/AppContext";
 
 export const AdminContext = createContext();
 
