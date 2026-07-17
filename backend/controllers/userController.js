@@ -17,6 +17,8 @@ const predictUser = async (req, res) => {
       });
     }
 
+    console.log(process.env.ML_API_URL);
+
     const response = await axios.post(`${process.env.ML_API_URL}/predict`, {
       text,
     });
@@ -61,12 +63,17 @@ console.log("MASUK IF");
       },
     });
   } catch (error) {
-    console.error("PREDICT ERROR:", error);
+    console.log("===== ML ERROR =====");
+  console.log(error.message);
+  console.log(error.code);
+  console.log(error.response?.status);
+  console.log(error.response?.data);
+  console.log(error.config?.url);
 
-    res.status(500).json({
-      success: false,
-      message: "Failed to connect ML service",
-    });
+  res.status(500).json({
+    success: false,
+    message: error.message,
+  });
   }
 };
 
