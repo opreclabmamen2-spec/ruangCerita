@@ -17,7 +17,7 @@ const predictUser = async (req, res) => {
       });
     }
 
-    const response = await axios.post("http://127.0.0.1:5000/predict", {
+    const response = await axios.post(`${process.env.ML_API_URL}/predict`, {
       text,
     });
 
