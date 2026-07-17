@@ -7,7 +7,7 @@ import HistoryPage from './pages/HistoryPage';
 import { AdminContext } from './context/AdminContext';
 import { useContext } from 'react';
 import Login from './pages/Login';
-import Sidebar from './components/SideBar';
+import SideBar from './components/SideBar';
 
 
 function App() {
@@ -18,7 +18,7 @@ function App() {
       <ToastContainer/>
 
       <div className="flex min-h-screen">
-  <Sidebar />
+    <SideBar/>
 
   <div className="flex-1 ml-64">
     <Routes>

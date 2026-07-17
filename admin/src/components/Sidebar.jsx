@@ -1,7 +1,7 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
 
-const Sidebar = () => {
+const SideBar = () => {
   const logout = () => {
     localStorage.removeItem("atoken");
 
@@ -90,4 +90,4 @@ const Sidebar = () => {
   );
 };
 
-export default Sidebar;
+export default SideBar;
