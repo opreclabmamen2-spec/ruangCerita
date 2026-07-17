@@ -13,14 +13,14 @@ from transformers import (
 app = Flask(__name__)
 CORS(app)
 
-MODEL_PATH = "mental_health_model"
+MODEL_NAME = "zzzild/mental-health-indobert"
 
 tokenizer = AutoTokenizer.from_pretrained(
-    MODEL_PATH
+    MODEL_NAME
 )
 
 model = AutoModelForSequenceClassification.from_pretrained(
-    MODEL_PATH
+    MODEL_NAME
 )
 
 model.eval()
