@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Route, Routes } from "react-router-dom";
-import Home from "./pages/Home.";
+import Home from "./pages/Home";
 import Analisis from "./pages/Analisis";
-import Tentang from "./pages/Tentang.";
+import Tentang from "./pages/Tentang";
 import Navbar from "./components/Navbar";
 import { assets } from "./assets/assets";
 import Footer from "./components/Footer";

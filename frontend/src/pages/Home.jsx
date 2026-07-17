@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { assets } from '../assets/assets'
 import Features from '../components/Features'
 import CTASection from '../components/CTASection'
-import FaqPage from './faqPage'
+import FaqPage from './FaqPage'
 
 const Home = () => {
   const navigate = useNavigate()
