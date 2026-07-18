@@ -36,7 +36,7 @@ const App = () => {
       {/* CONTENT */}
       <div className="w-full max-w-7xl px-4">
         <Routes>
-          <Route path="/" element={<Home />} />
+<Route path="/" element={<Home openModal={() => setOpen(true)} />} />
           <Route path="/analysis" element={<Analisis />} />
           <Route path="/about" element={<Tentang />} />
           <Route path="/profile" element={<Profile/>}/>

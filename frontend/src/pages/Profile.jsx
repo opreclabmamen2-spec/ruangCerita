@@ -1,4 +1,4 @@
-import React, { useContext, useMemo, useState } from "react";
+import React, { useContext, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Brain, Activity, TrendingUp, ShieldCheck, HeartHandshake } from "lucide-react";
 import { AppContext } from "../context/AppContext";
@@ -18,6 +18,25 @@ const CATEGORY_SOFT_BG = {
   Anxiety: "bg-[#D9A441]/10 text-[#A9791E]",
   Depression: "bg-[#6B7FA3]/10 text-[#4D5F82]",
   Suicidal: "bg-[#A34B4B]/10 text-[#8A3A3A]",
+};
+
+// ---------------------------------------------------------------------------
+// Responsive helper — tracks whether the viewport is mobile-sized so chart.js
+// options (which can't be controlled via Tailwind classes) can adapt too.
+// ---------------------------------------------------------------------------
+const useIsMobile = (breakpoint = 640) => {
+  const [isMobile, setIsMobile] = useState(
+    typeof window !== "undefined" ? window.innerWidth < breakpoint : false
+  );
+
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < breakpoint);
+    handler();
+    window.addEventListener("resize", handler);
+    return () => window.removeEventListener("resize", handler);
+  }, [breakpoint]);
+
+  return isMobile;
 };
 
 // ---------------------------------------------------------------------------
@@ -53,6 +72,7 @@ const Profile = () => {
   const { history, userData, setToken } = useContext(AppContext);
   const navigate = useNavigate();
   const [viewMode, setViewMode] = useState("day"); // "day" | "week"
+  const isMobile = useIsMobile();
 
   const logout = () => {
     setToken(false);
@@ -79,7 +99,7 @@ const Profile = () => {
       improvement: avgNormal.toFixed(1),
     };
   }, [history]);
-  
+
   const groupedChartData = useMemo(() => {
     if (!history?.length) return [];
 
@@ -130,9 +150,9 @@ const Profile = () => {
           borderColor: CATEGORY_COLORS.Normal,
           backgroundColor: `${CATEGORY_COLORS.Normal}22`,
           tension: 0.4,
-          borderWidth: 2.5,
-          pointRadius: 3,
-          pointHoverRadius: 5,
+          borderWidth: isMobile ? 2 : 2.5,
+          pointRadius: isMobile ? 2 : 3,
+          pointHoverRadius: isMobile ? 4 : 5,
         },
         {
           label: "Anxiety",
@@ -140,9 +160,9 @@ const Profile = () => {
           borderColor: CATEGORY_COLORS.Anxiety,
           backgroundColor: `${CATEGORY_COLORS.Anxiety}22`,
           tension: 0.4,
-          borderWidth: 2.5,
-          pointRadius: 3,
-          pointHoverRadius: 5,
+          borderWidth: isMobile ? 2 : 2.5,
+          pointRadius: isMobile ? 2 : 3,
+          pointHoverRadius: isMobile ? 4 : 5,
         },
         {
           label: "Depression",
@@ -150,9 +170,9 @@ const Profile = () => {
           borderColor: CATEGORY_COLORS.Depression,
           backgroundColor: `${CATEGORY_COLORS.Depression}22`,
           tension: 0.4,
-          borderWidth: 2.5,
-          pointRadius: 3,
-          pointHoverRadius: 5,
+          borderWidth: isMobile ? 2 : 2.5,
+          pointRadius: isMobile ? 2 : 3,
+          pointHoverRadius: isMobile ? 4 : 5,
         },
         {
           label: "Suicidal",
@@ -160,38 +180,63 @@ const Profile = () => {
           borderColor: CATEGORY_COLORS.Suicidal,
           backgroundColor: `${CATEGORY_COLORS.Suicidal}22`,
           tension: 0.4,
-          borderWidth: 2.5,
-          pointRadius: 3,
-          pointHoverRadius: 5,
+          borderWidth: isMobile ? 2 : 2.5,
+          pointRadius: isMobile ? 2 : 3,
+          pointHoverRadius: isMobile ? 4 : 5,
         },
       ],
     }),
-    [groupedChartData],
+    [groupedChartData, isMobile],
   );
 
-  const lineOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    interaction: { mode: "index", intersect: false },
-    plugins: {
-      legend: {
-        position: "bottom",
-        labels: { font: { family: "Inter", size: 12 }, usePointStyle: true, boxWidth: 8 },
+  const lineOptions = useMemo(
+    () => ({
+      responsive: true,
+      maintainAspectRatio: false,
+      // Slightly bigger touch target for tooltips on mobile
+      interaction: { mode: "index", intersect: false },
+      layout: {
+        padding: { top: 4, right: isMobile ? 4 : 8, bottom: 0, left: isMobile ? -4 : 0 },
       },
-    },
-    scales: {
-      y: {
-        beginAtZero: true,
-        max: 100,
-        grid: { color: "#F1EAE0" },
-        ticks: { font: { family: "JetBrains Mono", size: 11 } },
+      plugins: {
+        legend: {
+          position: "bottom",
+          labels: {
+            font: { family: "Inter", size: isMobile ? 10 : 12 },
+            usePointStyle: true,
+            boxWidth: isMobile ? 6 : 8,
+            padding: isMobile ? 10 : 16,
+          },
+        },
+        tooltip: {
+          titleFont: { size: isMobile ? 11 : 12 },
+          bodyFont: { size: isMobile ? 11 : 12 },
+        },
       },
-      x: {
-        grid: { display: false },
-        ticks: { font: { family: "JetBrains Mono", size: 11 }, maxRotation: 0, autoSkipPadding: 12 },
+      scales: {
+        y: {
+          beginAtZero: true,
+          max: 100,
+          grid: { color: "#F1EAE0" },
+          ticks: {
+            font: { family: "JetBrains Mono", size: isMobile ? 9 : 11 },
+            maxTicksLimit: isMobile ? 5 : 6,
+          },
+        },
+        x: {
+          grid: { display: false },
+          ticks: {
+            font: { family: "JetBrains Mono", size: isMobile ? 9 : 11 },
+            maxRotation: isMobile ? 45 : 0,
+            minRotation: isMobile ? 45 : 0,
+            autoSkip: true,
+            maxTicksLimit: isMobile ? 5 : 10,
+          },
+        },
       },
-    },
-  };
+    }),
+    [isMobile],
+  );
 
   const pieData = useMemo(() => {
     if (!history?.length) return [];
@@ -226,6 +271,25 @@ const Profile = () => {
     [pieData],
   );
 
+  const doughnutOptions = useMemo(
+    () => ({
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: "bottom",
+          labels: {
+            font: { family: "Inter", size: isMobile ? 10 : 12 },
+            usePointStyle: true,
+            boxWidth: isMobile ? 6 : 8,
+            padding: isMobile ? 10 : 16,
+          },
+        },
+      },
+    }),
+    [isMobile],
+  );
+
   const insight = useMemo(() => {
     if (!history?.length) return "Belum ada data analisis yang tersedia.";
 
@@ -251,7 +315,7 @@ const Profile = () => {
 
   return (
     <div
-      className="min-h-screen bg-[#FAF7F3] py-10 px-4"
+      className="min-h-screen bg-[#FAF7F3] py-6 px-3 sm:py-10 sm:px-4"
       style={{ fontFamily: "Inter, sans-serif" }}
     >
       <style>{`
@@ -262,10 +326,10 @@ const Profile = () => {
 
       <div className="max-w-7xl mx-auto">
         {/* HEADER */}
-        <div className="mb-8 bg-white/80 backdrop-blur-sm border border-[#D6BFA6]/20 rounded-3xl p-8 shadow-sm">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div className="mb-6 sm:mb-8 bg-white/80 backdrop-blur-sm border border-[#D6BFA6]/20 rounded-2xl sm:rounded-3xl p-5 sm:p-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="font-display text-3xl font-semibold text-[#2D2D2D]">
+              <h1 className="font-display text-2xl sm:text-3xl font-semibold text-[#2D2D2D]">
                 Halo, {userData?.name} 👋
               </h1>
               <p className="text-[#6B7280] mt-2 text-sm">
@@ -275,7 +339,7 @@ const Profile = () => {
 
             <button
               onClick={logout}
-              className="bg-black text-white px-5 py-2.5 sm:px-6 sm:py-3 text-sm sm:text-base rounded-xl cursor-pointer hover:bg-zinc-800 hover:scale-105 transition duration-300 active:scale-100"
+              className="w-full sm:w-auto bg-black text-white px-5 py-2.5 sm:px-6 sm:py-3 text-sm sm:text-base rounded-xl cursor-pointer hover:bg-zinc-800 hover:scale-105 transition duration-300 active:scale-100"
             >
               Keluar
             </button>
@@ -297,9 +361,9 @@ const Profile = () => {
 
         {/* Crisis support note — shown only when the latest result is high risk */}
         {showCrisisNote && (
-          <div className="mb-8 bg-[#A34B4B]/8 border border-[#A34B4B]/25 rounded-2xl p-5 flex items-start gap-4">
-            <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shrink-0">
-              <HeartHandshake size={20} className="text-[#A34B4B]" />
+          <div className="mb-6 sm:mb-8 bg-[#A34B4B]/8 border border-[#A34B4B]/25 rounded-2xl p-4 sm:p-5 flex items-start gap-3 sm:gap-4">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white flex items-center justify-center shrink-0">
+              <HeartHandshake size={18} className="text-[#A34B4B] sm:w-5 sm:h-5" />
             </div>
             <div>
               <p className="font-medium text-[#7A3737] text-sm">
@@ -315,22 +379,22 @@ const Profile = () => {
         )}
 
         {/* STATS */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-5 mb-8">
-          <div className="bg-white border border-[#D6BFA6]/20 rounded-2xl p-5 shadow-sm hover:shadow-md transition">
-            <div className="w-12 h-12 rounded-xl bg-[#D6BFA6]/15 flex items-center justify-center mb-3">
-              <Brain className="text-[#B89D82]" />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-5 mb-6 sm:mb-8">
+          <div className="bg-white border border-[#D6BFA6]/20 rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-sm hover:shadow-md transition">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-[#D6BFA6]/15 flex items-center justify-center mb-2 sm:mb-3">
+              <Brain className="text-[#B89D82] w-5 h-5 sm:w-6 sm:h-6" />
             </div>
-            <p className="text-[#6B7280] text-sm">Total Analisis</p>
-            <h2 className="font-mono-num text-3xl font-semibold text-[#2D2D2D]">{stats.total}</h2>
+            <p className="text-[#6B7280] text-xs sm:text-sm">Total Analisis</p>
+            <h2 className="font-mono-num text-2xl sm:text-3xl font-semibold text-[#2D2D2D]">{stats.total}</h2>
           </div>
 
-          <div className="bg-white border border-[#D6BFA6]/20 rounded-2xl p-5 shadow-sm hover:shadow-md transition">
-            <div className="w-12 h-12 rounded-xl bg-[#D6BFA6]/15 flex items-center justify-center mb-3">
-              <Activity className="text-[#B89D82]" />
+          <div className="bg-white border border-[#D6BFA6]/20 rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-sm hover:shadow-md transition">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-[#D6BFA6]/15 flex items-center justify-center mb-2 sm:mb-3">
+              <Activity className="text-[#B89D82] w-5 h-5 sm:w-6 sm:h-6" />
             </div>
-            <p className="text-[#6B7280] text-sm">Dominan Terakhir</p>
+            <p className="text-[#6B7280] text-xs sm:text-sm">Dominan Terakhir</p>
             <span
-              className={`inline-block mt-1 px-3 py-1 rounded-full text-sm font-semibold ${
+              className={`inline-block mt-1 px-3 py-1 rounded-full text-xs sm:text-sm font-semibold ${
                 CATEGORY_SOFT_BG[stats.dominant] || "bg-slate-100 text-slate-600"
               }`}
             >
@@ -338,39 +402,42 @@ const Profile = () => {
             </span>
           </div>
 
-          <div className="bg-white border border-[#D6BFA6]/20 rounded-2xl p-5 shadow-sm hover:shadow-md transition">
-            <div className="w-12 h-12 rounded-xl bg-[#D6BFA6]/15 flex items-center justify-center mb-3">
-              <TrendingUp className="text-[#B89D82]" />
+          <div className="bg-white border border-[#D6BFA6]/20 rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-sm hover:shadow-md transition">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-[#D6BFA6]/15 flex items-center justify-center mb-2 sm:mb-3">
+              <TrendingUp className="text-[#B89D82] w-5 h-5 sm:w-6 sm:h-6" />
             </div>
-            <p className="text-[#6B7280] text-sm">Rata-rata Normal</p>
-            <h2 className="font-mono-num text-2xl font-semibold" style={{ color: CATEGORY_COLORS.Normal }}>
+            <p className="text-[#6B7280] text-xs sm:text-sm">Rata-rata Normal</p>
+            <h2
+              className="font-mono-num text-xl sm:text-2xl font-semibold"
+              style={{ color: CATEGORY_COLORS.Normal }}
+            >
               {stats.improvement}%
             </h2>
           </div>
 
-          <div className="bg-white border border-[#D6BFA6]/20 rounded-2xl p-5 shadow-sm hover:shadow-md transition">
-            <div className="w-12 h-12 rounded-xl bg-[#D6BFA6]/15 flex items-center justify-center mb-3">
-              <ShieldCheck className="text-[#B89D82]" />
+          <div className="bg-white border border-[#D6BFA6]/20 rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-sm hover:shadow-md transition">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-[#D6BFA6]/15 flex items-center justify-center mb-2 sm:mb-3">
+              <ShieldCheck className="text-[#B89D82] w-5 h-5 sm:w-6 sm:h-6" />
             </div>
-            <p className="text-[#6B7280] text-sm">Status Saat Ini</p>
-            <h2 className="font-display text-xl font-semibold text-[#2D2D2D]">
+            <p className="text-[#6B7280] text-xs sm:text-sm">Status Saat Ini</p>
+            <h2 className="font-display text-lg sm:text-xl font-semibold text-[#2D2D2D] truncate">
               {history?.[0]?.prediction || "-"}
             </h2>
           </div>
         </div>
 
         {/* LINE CHART */}
-        <div className="bg-white border border-[#D6BFA6]/20 rounded-3xl p-6 shadow-sm mb-8">
-          <div className="flex flex-wrap items-center justify-between gap-4 mb-5">
-            <h2 className="font-display font-semibold text-xl text-[#2D2D2D]">
+        <div className="bg-white border border-[#D6BFA6]/20 rounded-2xl sm:rounded-3xl p-3 sm:p-6 shadow-sm mb-6 sm:mb-8">
+          <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-5 px-1">
+            <h2 className="font-display font-semibold text-lg sm:text-xl text-[#2D2D2D]">
               Perkembangan Kondisi
             </h2>
 
             {/* Day / Week toggle */}
-            <div className="inline-flex bg-[#F5F0E8] rounded-xl p-1 text-sm font-medium">
+            <div className="inline-flex bg-[#F5F0E8] rounded-xl p-1 text-xs sm:text-sm font-medium">
               <button
                 onClick={() => setViewMode("day")}
-                className={`px-4 py-1.5 rounded-lg transition ${
+                className={`px-3 sm:px-4 py-1.5 rounded-lg transition ${
                   viewMode === "day"
                     ? "bg-white text-[#2D2D2D] shadow-sm"
                     : "text-[#8A8378] hover:text-[#2D2D2D]"
@@ -380,7 +447,7 @@ const Profile = () => {
               </button>
               <button
                 onClick={() => setViewMode("week")}
-                className={`px-4 py-1.5 rounded-lg transition ${
+                className={`px-3 sm:px-4 py-1.5 rounded-lg transition ${
                   viewMode === "week"
                     ? "bg-white text-[#2D2D2D] shadow-sm"
                     : "text-[#8A8378] hover:text-[#2D2D2D]"
@@ -392,15 +459,15 @@ const Profile = () => {
           </div>
 
           {groupedChartData.length === 0 ? (
-            <div className="h-[300px] flex items-center justify-center text-[#9A968C] text-sm">
+            <div className="h-[220px] sm:h-[300px] flex items-center justify-center text-[#9A968C] text-sm px-4 text-center">
               Belum ada data untuk ditampilkan.
             </div>
           ) : (
-            <div className="h-[400px]">
+            <div className="h-[260px] sm:h-[350px] md:h-[400px] w-full">
               <Line data={lineData} options={lineOptions} />
             </div>
           )}
-          <p className="text-xs text-[#9A968C] mt-3">
+          <p className="text-[11px] sm:text-xs text-[#9A968C] mt-3 px-1">
             {viewMode === "day"
               ? "Setiap titik adalah rata-rata hasil analisis pada hari tersebut."
               : "Setiap titik adalah rata-rata hasil analisis pada minggu tersebut (Senin–Minggu)."}
@@ -408,72 +475,63 @@ const Profile = () => {
         </div>
 
         {/* PIE + INSIGHT */}
-        <div className="grid md:grid-cols-2 gap-8 mb-8">
-          <div className="bg-white border border-[#D6BFA6]/20 rounded-3xl p-6 shadow-sm">
-            <h2 className="font-display font-semibold text-xl mb-4 text-[#2D2D2D]">
+        <div className="grid md:grid-cols-2 gap-4 sm:gap-6 md:gap-8 mb-6 sm:mb-8">
+          <div className="bg-white border border-[#D6BFA6]/20 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-sm">
+            <h2 className="font-display font-semibold text-lg sm:text-xl mb-4 text-[#2D2D2D]">
               Distribusi Keseluruhan
             </h2>
-            <div className="h-[320px]">
-              <Doughnut
-                data={doughnutData}
-                options={{
-                  responsive: true,
-                  maintainAspectRatio: false,
-                  plugins: {
-                    legend: {
-                      position: "bottom",
-                      labels: { font: { family: "Inter", size: 12 }, usePointStyle: true, boxWidth: 8 },
-                    },
-                  },
-                }}
-              />
+            <div className="h-[240px] sm:h-[300px] md:h-[320px] w-full">
+              <Doughnut data={doughnutData} options={doughnutOptions} />
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-[#F6EFE8] to-[#FFFDFB] border border-[#D6BFA6]/20 rounded-3xl p-6 shadow-sm">
-            <h2 className="font-display font-semibold text-xl mb-4 text-[#2D2D2D]">
+          <div className="bg-gradient-to-br from-[#F6EFE8] to-[#FFFDFB] border border-[#D6BFA6]/20 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-sm">
+            <h2 className="font-display font-semibold text-lg sm:text-xl mb-4 text-[#2D2D2D]">
               💡 Insight
             </h2>
-            <p className="text-[#5B6470] leading-8">{insight}</p>
+            <p className="text-[#5B6470] leading-7 sm:leading-8 text-sm sm:text-base">{insight}</p>
           </div>
         </div>
 
         {/* HISTORY */}
-        <div className="bg-white border border-[#D6BFA6]/20 rounded-3xl p-6 shadow-sm">
-          <h2 className="font-display font-semibold text-xl mb-5 text-[#2D2D2D]">
+        <div className="bg-white border border-[#D6BFA6]/20 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-sm">
+          <h2 className="font-display font-semibold text-lg sm:text-xl mb-4 sm:mb-5 text-[#2D2D2D]">
             Riwayat Analisis
           </h2>
 
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             {history?.map((item) => (
               <div
                 key={item.historyId}
-                className="border border-[#EADFD2] rounded-2xl p-5 hover:bg-[#FCFAF8] transition"
+                className="border border-[#EADFD2] rounded-2xl p-4 sm:p-5 hover:bg-[#FCFAF8] transition"
               >
-                <div className="flex justify-between items-center mb-3">
+                <div className="flex justify-between items-center gap-2 mb-3">
                   <span
-                    className={`px-4 py-1 rounded-full font-semibold text-sm ${
+                    className={`px-3 sm:px-4 py-1 rounded-full font-semibold text-xs sm:text-sm shrink-0 ${
                       CATEGORY_SOFT_BG[item.dominantLabel] || "bg-slate-100 text-slate-600"
                     }`}
                   >
                     {item.dominantLabel}
                   </span>
-                  <span className="font-mono-num text-sm text-[#6B7280]">
+                  <span className="font-mono-num text-xs sm:text-sm text-[#6B7280] shrink-0">
                     {item.confidence}%
                   </span>
                 </div>
 
-                <p className="text-[#4B5563] mb-4">{item.text}</p>
+                <p className="text-[#4B5563] mb-4 text-sm sm:text-base break-words">{item.text}</p>
 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 text-xs sm:text-sm">
                   {Object.keys(CATEGORY_COLORS).map((label) => (
                     <div
                       key={label}
-                      className="rounded-lg p-2 flex items-center justify-between"
+                      className="rounded-lg p-2 flex items-center justify-between gap-1"
                       style={{ backgroundColor: `${CATEGORY_COLORS[label]}14` }}
                     >
-                      <span className="text-[#4B5563]">{label}</span>
-                      <span className="font-mono-num font-medium" style={{ color: CATEGORY_COLORS[label] }}>
+                      <span className="text-[#4B5563] truncate">{label}</span>
+                      <span
+                        className="font-mono-num font-medium shrink-0"
+                        style={{ color: CATEGORY_COLORS[label] }}
+                      >
                         {item.probabilities?.[label] ?? 0}%
                       </span>
                     </div>

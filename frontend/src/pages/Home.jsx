@@ -6,8 +6,9 @@ import Features from '../components/Features'
 import CTASection from '../components/CTASection'
 import FaqPage from './FaqPage'
 
-const Home = () => {
+const Home = ({ openModal }) => {
   const navigate = useNavigate()
+  
 
   return (
     
@@ -29,7 +30,10 @@ const Home = () => {
     />
   </div>
     <Features />
-    <CTASection/>
+    <CTASection 
+    createAccount={() => openModal()}
+    Analyze={() => navigate("/analysis")}
+    />
     <FaqPage/>
 </div>
   

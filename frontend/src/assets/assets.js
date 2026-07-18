@@ -26,7 +26,7 @@ export const features = [
   },
   {
     title: "Suicidal Risk Detection",
-    desc: "Mendeteksi potensi risiko bunuh diri dari pola bahasa yang mengarah ke keputusasaan.",
+    desc: "Mendeteksi risiko bunuh diri dari pola bahasa yang mengarah ke keputusasaan.",
     img: assets.suicidal,
   },
 ];
